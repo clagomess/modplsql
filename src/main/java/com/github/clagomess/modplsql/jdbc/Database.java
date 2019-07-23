@@ -8,7 +8,7 @@ import java.util.Map;
 
 @Slf4j
 public class Database {
-    private static ConfigDto configDto;
+    public static ConfigDto configDto;
     private static Connection conn;
 
     public static void init(ConfigDto dto) throws SQLException {

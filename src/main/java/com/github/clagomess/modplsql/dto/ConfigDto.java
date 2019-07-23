@@ -12,6 +12,7 @@ public class ConfigDto {
     private String dbUser;
     private String dbPass;
     private List<Param> params;
+    private String indexPage;
 
     @Data
     public static class Param {

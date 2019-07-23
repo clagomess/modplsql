@@ -4,10 +4,9 @@ import com.github.clagomess.modplsql.jdbc.Database;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Request;
+import javax.ws.rs.core.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +14,16 @@ import java.util.Map;
 @Slf4j
 @Path("/")
 public class ModPlsqlController {
+    @GET
+    public Response index() throws URISyntaxException {
+        if(Database.configDto.getIndexPage() == null){
+            return Response.ok("Index not defined in config.json", MediaType.TEXT_PLAIN).build();
+        }
+
+        return Response.seeOther(new URI(Database.configDto.getIndexPage())).build();
+    }
+
+
     @GET
     @Path("status")
     @Produces(MediaType.TEXT_PLAIN)
