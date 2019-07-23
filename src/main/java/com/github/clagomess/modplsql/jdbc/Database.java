@@ -62,7 +62,7 @@ public class Database {
                 "  );\n" +
                 "END;");
 
-        log.info("QUERY: {}", sql.toString());
+        log.info("QUERY:\n{}", sql.toString());
 
         Statement stmt = conn.createStatement();
         stmt.executeQuery(sql.toString());
