@@ -2,6 +2,9 @@
 
 Lightweight based Java server to run Oracle OWA (Oracle Web Agent)
 
+### Download
+- https://github.com/clagomess/modplsql/releases/latest
+
 ### Example
 
 OWA Oracle procedure:
@@ -30,5 +33,5 @@ config.json:
 }
 ```
 
-run: `java -jar mod-plsql.jar`
-See: `http://localhost:8000`
+- Run: `java -jar mod-plsql.jar`
+- See: `http://localhost:8000`
