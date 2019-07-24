@@ -10,26 +10,25 @@ import java.util.Map;
 public class Database {
     public static ConfigDto configDto;
     private static Connection conn;
+    private static Statement stmt;
 
     public static void init(ConfigDto dto) throws SQLException {
         configDto = dto;
         conn = DriverManager.getConnection(dto.getDbUrl(), dto.getDbUser(), dto.getDbPass());
+        stmt = conn.createStatement();
 
-        // inicia OWA
-        owaInit();
-    }
-
-    private static void owaInit() throws SQLException {
-        Statement stmt = conn.createStatement();
-        stmt.executeQuery("declare\n" +
+        // init OWA
+        stmt.executeUpdate("declare\n" +
                 "    nm  owa.vc_arr;\n" +
                 "    vl  owa.vc_arr;\n" +
                 "begin\n" +
                 "    nm(1) := 'SERVER_PORT';\n" +
-                "    vl(1) := '80';\n" +
+                "    vl(1) := '8000';\n" +
                 "    owa.init_cgi_env( 1, nm, vl );\n" +
                 "end;");
-        stmt.close();
+
+        // init DBMS
+        stmt.executeUpdate("begin dbms_output.enable(); end;");
     }
 
     public static String runPl(String plName, Map<String, String> param) throws SQLException {
@@ -64,8 +63,7 @@ public class Database {
 
         log.info("QUERY:\n{}", sql.toString());
 
-        Statement stmt = conn.createStatement();
-        stmt.executeQuery(sql.toString());
+        stmt.executeUpdate(sql.toString());
 
         log.info("GET RESULT");
         return getResult();
@@ -73,10 +71,18 @@ public class Database {
 
     private static String getResult() throws SQLException {
         StringBuilder result = new StringBuilder();
-        String buff;
 
-        while ((buff = getChunkResult()) != null){
-            result.append(buff);
+        try {
+            // get buffer
+            String buff;
+
+            while ((buff = getChunkResult()) != null) {
+                result.append(buff);
+            }
+        }catch (SQLException e){
+            log.error(e.getMessage());
+        }finally {
+            printDbmsOutput();
         }
 
         return result.toString();
@@ -104,9 +110,30 @@ public class Database {
         cs.setInt(1, 127);
         cs.registerOutParameter(2, Types.VARCHAR);
         cs.registerOutParameter(3, Types.BIGINT);
-
         cs.execute();
 
-        return cs.getString(2);
+        String result = cs.getString(2);
+
+        cs.close();
+
+        return result;
+    }
+
+    private static void printDbmsOutput() throws SQLException {
+        String query = "declare\n" +
+                "  num integer := 1000;\n" +
+                "begin\n" +
+                "  dbms_output.get_lines(?, num);\n" +
+                "end;";
+        CallableStatement cs = conn.prepareCall(query);
+        cs.registerOutParameter(1, Types.ARRAY, "DBMSOUTPUT_LINESARRAY");
+        cs.execute();
+
+        String[] listLog = (String[]) cs.getArray(1).getArray();
+        cs.close();
+
+        for(String item : listLog){
+            log.info("DBMSOUTPUT: {}", item);
+        }
     }
 }
