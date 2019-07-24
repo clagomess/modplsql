@@ -20,7 +20,7 @@ public class ModPlsqlController {
             return Response.ok("Index not defined in config.json", MediaType.TEXT_PLAIN).build();
         }
 
-        return Response.seeOther(new URI(Database.configDto.getIndexPage())).build();
+        return Response.seeOther(new URI("!" + Database.configDto.getIndexPage())).build();
     }
 
 
