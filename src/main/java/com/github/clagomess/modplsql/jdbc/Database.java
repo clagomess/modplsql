@@ -68,21 +68,21 @@ public class Database {
         stmt.executeQuery(sql.toString());
 
         log.info("GET RESULT");
+        return getResult();
+    }
+
+    private static String getResult() throws SQLException {
         StringBuilder result = new StringBuilder();
-        while (true){
-            String buff = getResult();
+        String buff;
 
-            if(buff == null){
-                break;
-            }
-
+        while ((buff = getChunkResult()) != null){
             result.append(buff);
         }
 
         return result.toString();
     }
 
-    private static String getResult() throws SQLException {
+    private static String getChunkResult() throws SQLException {
         String queryResult = "declare \n" +
                 " nlns number;\n" +
                 " buf_t varchar2(32767);\n" +
