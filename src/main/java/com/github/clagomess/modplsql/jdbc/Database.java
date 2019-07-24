@@ -133,7 +133,9 @@ public class Database {
         cs.close();
 
         for(String item : listLog){
-            log.info("DBMSOUTPUT: {}", item);
+            if(item != null) {
+                log.info("DBMSOUTPUT: {}", item);
+            }
         }
     }
 }
