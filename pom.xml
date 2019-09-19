@@ -6,7 +6,7 @@
 
     <groupId>com.github.clagomess</groupId>
     <artifactId>mod-plsql</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <properties>
         <jetty.version>9.4.19.v20190610</jetty.version>
