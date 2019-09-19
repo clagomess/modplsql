@@ -48,7 +48,7 @@ public class Database {
         int idx = 1;
         for (Map.Entry<String, String> entry : param.entrySet()) {
             sql.append(String.format("  NAME_ARRAY(%s) := '%s';\n", idx, entry.getKey()));
-            sql.append(String.format("  VALUE_ARRAY(%s) := '%s';\n", idx, entry.getValue()));
+            sql.append(String.format("  VALUE_ARRAY(%s) := '%s';\n", idx, escape(entry.getValue())));
             idx++;
         }
 
@@ -67,6 +67,14 @@ public class Database {
 
         log.info("GET RESULT");
         return getResult();
+    }
+
+    private static String escape(String vl){
+        if(vl == null || vl.trim().length() == 0){
+            return vl;
+        }
+
+        return vl.replaceAll("'", "''");
     }
 
     private static String getResult() throws SQLException {
