@@ -32,6 +32,8 @@ public class Database {
     }
 
     public static String runPl(String plName, Map<String, String> param) throws SQLException {
+        int idx;
+
         // fill parans
         param.putAll(configDto.getParamsAsMap());
 
@@ -45,10 +47,10 @@ public class Database {
 
         sql.append(String.format("  NUM_ENTRIES := %s;\n", param.size()));
 
-        int idx = 1;
+        idx = 1;
         for (Map.Entry<String, String> entry : param.entrySet()) {
-            sql.append(String.format("  NAME_ARRAY(%s) := '%s';\n", idx, entry.getKey()));
-            sql.append(String.format("  VALUE_ARRAY(%s) := '%s';\n", idx, escape(entry.getValue())));
+            sql.append(String.format("  NAME_ARRAY(%s) := ?; -- '%s'\n", idx, entry.getKey()));
+            sql.append(String.format("  VALUE_ARRAY(%s) := ?; -- '%s'\n", idx, escape(entry.getValue())));
             idx++;
         }
 
@@ -63,9 +65,17 @@ public class Database {
 
         log.info("QUERY:\n{}", sql.toString());
 
-        stmt.executeUpdate(sql.toString());
+        PreparedStatement pstmt = conn.prepareStatement(sql.toString());
+        idx = 1;
+        for (Map.Entry<String, String> entry : param.entrySet()) {
+            pstmt.setString(idx, entry.getKey());
+            idx++;
+            pstmt.setString(idx, entry.getValue());
+            idx++;
+        }
 
-        log.info("GET RESULT");
+        pstmt.execute();
+
         return getResult();
     }
 
