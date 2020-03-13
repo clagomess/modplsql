@@ -35,9 +35,10 @@ public class ModPlsqlController {
     @Produces("text/html; charset=windows-1252")
     public String handleGet(
             @PathParam("path") String path,
-            @Context Request request
+            @Context UriInfo request
     ){
         Map<String, String> param = new HashMap<>();
+        request.getQueryParameters().forEach((key, value) -> param.put(key, value.get(0)));
 
         try {
             return Database.runPl(path, param);
