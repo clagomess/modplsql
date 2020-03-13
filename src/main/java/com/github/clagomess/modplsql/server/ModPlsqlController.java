@@ -23,7 +23,6 @@ public class ModPlsqlController {
         return Response.seeOther(new URI("!" + Database.configDto.getIndexPage())).build();
     }
 
-
     @GET
     @Path("status")
     @Produces(MediaType.TEXT_PLAIN)
