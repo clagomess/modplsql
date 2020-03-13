@@ -8,7 +8,6 @@ import javax.ws.rs.core.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -38,7 +37,7 @@ public class ModPlsqlController {
             @Context UriInfo request
     ){
         Map<String, String> param = new HashMap<>();
-        request.getQueryParameters().forEach((key, value) -> param.put(key, value.get(0)));
+        request.getQueryParameters().forEach((key, value) -> param.put(key.toUpperCase(), value.get(0)));
 
         try {
             return Database.runPl(path, param);
@@ -57,10 +56,7 @@ public class ModPlsqlController {
             MultivaluedMap<String, String> form
     ){
         Map<String, String> param = new HashMap<>();
-
-        for(Map.Entry<String, List<String>> entry : form.entrySet()) {
-            param.put(entry.getKey(), entry.getValue().get(0));
-        }
+        form.forEach((key, value) -> param.put(key.toUpperCase(), value.get(0)));
 
         try {
             return Database.runPl(path, param);

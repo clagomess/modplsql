@@ -142,4 +142,17 @@ public class ModPlsqlControllerTest {
         log.info("{}", response);
         MatcherAssert.assertThat(response, CoreMatchers.containsString("P_VL1 => " + p_vl1));
     }
+
+    @Test
+    public void httpNamedParam_lowercase(){
+        String p_vl1 = RandomStringUtils.randomAlphanumeric(10);
+
+        String response = ClientBuilder.newClient()
+                .target(endpoint + "/!MODPLSQL.HTTP_NAMED_PARAM?p_vl1=" + p_vl1)
+                .request()
+                .get(String.class);
+
+        log.info("{}", response);
+        MatcherAssert.assertThat(response, CoreMatchers.containsString("P_VL1 => " + p_vl1));
+    }
 }

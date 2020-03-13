@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -34,36 +35,75 @@ public class Database {
     }
 
     public static String runPl(String plName, Map<String, String> param) throws SQLException {
-        int idx;
+        int idx = 1;
+
+        // get arglist
+        List<String> arguments = getProcedureArguments(plName);
 
         // fill parans
         param.putAll(configDto.getParamsAsMap());
 
         StringBuilder sql = new StringBuilder();
-        sql.append("DECLARE\n" +
-                "  NUM_ENTRIES NUMBER;\n" +
-                "  NAME_ARRAY OWA.VC_ARR;\n" +
-                "  VALUE_ARRAY OWA.VC_ARR;\n" +
-                "  RESERVED OWA.VC_ARR;\n" +
-                "BEGIN\n");
 
-        sql.append(String.format("  NUM_ENTRIES := %s;\n", param.size()));
+        if(!arguments.isEmpty()){
+            sql.append("DECLARE\n");
 
-        idx = 1;
-        for (Map.Entry<String, String> entry : param.entrySet()) {
-            sql.append(String.format("  NAME_ARRAY(%s) := ?; -- '%s'\n", idx, entry.getKey()));
-            sql.append(String.format("  VALUE_ARRAY(%s) := ?; -- '%s'\n", idx, escape(entry.getValue())));
-            idx++;
+            if(arguments.contains("NUM_ENTRIES")){
+                sql.append("  NUM_ENTRIES NUMBER;\n");
+            }
+
+            if(arguments.contains("NAME_ARRAY")){
+                sql.append("  NAME_ARRAY OWA.VC_ARR;\n");
+            }
+
+            if(arguments.contains("VALUE_ARRAY")){
+                sql.append("  VALUE_ARRAY OWA.VC_ARR;\n");
+            }
+
+            if(arguments.contains("RESERVED")){
+                sql.append("  RESERVED OWA.VC_ARR;\n");
+            }
+
+            sql.append("BEGIN\n");
+
+            if(arguments.contains("NUM_ENTRIES")){
+                sql.append(String.format("  NUM_ENTRIES := %s;\n", param.size()));
+            }
+
+            for (Map.Entry<String, String> entry : param.entrySet()) {
+                if(arguments.contains("NAME_ARRAY")) {
+                    sql.append(String.format("  NAME_ARRAY(%s) := ?; -- '%s'\n", idx, entry.getKey()));
+                }
+
+                if(arguments.contains("VALUE_ARRAY")) {
+                    sql.append(String.format("  VALUE_ARRAY(%s) := ?; -- '%s'\n", idx, escape(entry.getValue())));
+                }
+
+                idx++;
+            }
+        }else{
+            sql.append("BEGIN\n");
         }
 
+        List<String> argRun = new ArrayList<>();
+        List<String> reseverd = Arrays.asList("NUM_ENTRIES", "NAME_ARRAY", "VALUE_ARRAY", "RESERVED");
+
+        reseverd.stream().filter(arguments::contains)
+            .forEach(item -> argRun.add(String.format("%s => %s", item, item)));
+
+        arguments.forEach(item -> {
+            if(!reseverd.contains(item)) {
+                String value = param.getOrDefault(item, "");
+                argRun.add(String.format("%s => '%s'", item, escape(value)));
+                param.remove(item);
+            }
+        });
+
         sql.append(plName);
-        sql.append("(\n" +
-                "    NUM_ENTRIES => NUM_ENTRIES,\n" +
-                "    NAME_ARRAY => NAME_ARRAY,\n" +
-                "    VALUE_ARRAY => VALUE_ARRAY,\n" +
-                "    RESERVED => RESERVED\n" +
-                "  );\n" +
-                "END;");
+        sql.append("(\n");
+        sql.append(String.join(",\n", argRun));
+        sql.append(");\n");
+        sql.append("END;");
 
         log.info("QUERY:\n{}", sql.toString());
 
