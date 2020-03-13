@@ -4,6 +4,8 @@ import com.github.clagomess.modplsql.dto.ConfigDto;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -77,6 +79,29 @@ public class Database {
         pstmt.execute();
 
         return getResult();
+    }
+
+    protected static List<String> getProcedureArguments(String plName) throws SQLException {
+        String owner = plName.split("\\.")[0];
+        String procedure = plName.split("\\.")[1];
+
+        String sql = "SELECT ARGUMENT_NAME FROM ALL_ARGUMENTS\n" +
+                "WHERE OWNER = ?\n" +
+                "AND OBJECT_NAME = ?\n" +
+                "AND ARGUMENT_NAME IS NOT NULL";
+
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        pstmt.setString(1, owner);
+        pstmt.setString(2, procedure);
+        ResultSet result = pstmt.executeQuery();
+
+        List<String> arguments = new ArrayList<>();
+
+        while (result.next()){
+            arguments.add(result.getString("ARGUMENT_NAME"));
+        }
+
+        return arguments;
     }
 
     private static String escape(String vl){
